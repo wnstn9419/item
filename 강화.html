@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강화 프로그램</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background: #3e2723;
+            background-image: url('https://cdn.pixabay.com/photo/2016/11/29/04/17/anvil-1865649_1280.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+        }
+        .container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+        }
+        label {
+            font-size: 1.2em;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            background: #5d4037;
+            color: white;
+        }
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-left: 10px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #ff7043;
+            color: white;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #ff5722;
+            transform: scale(1.05);
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .probabilities {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>아이템 강화</h1>
+        <label for="start-level">시작 단계:</label>
+        <br>
+        <input type="number" id="start-level" min="0" max="15" value="0">
+        <br><br>
+        <label>
+            <input type="checkbox" id="protection"> 파괴 방지
+        </label>
+        <br><br>
+        <button id="enhance-button">강화</button>
+        <div class="probabilities" id="probabilities"></div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const enhanceButton = document.getElementById("enhance-button");
+        const startLevelInput = document.getElementById("start-level");
+        const protectionCheckbox = document.getElementById("protection");
+        const resultDiv = document.getElementById("result");
+        const probabilitiesDiv = document.getElementById("probabilities");
+
+        let currentLevel = 0;
+
+        function getEnhanceChance(level) {
+            if (level < 8) return 30;
+            return 10;
+        }
+
+        function getDestroyChance(level) {
+            if (level < 8) return 0;
+            return Math.min(10, (level - 7) * 2);
+        }
+
+        function updateProbabilities() {
+            const enhanceChance = getEnhanceChance(currentLevel);
+            const destroyChance = getDestroyChance(currentLevel);
+            probabilitiesDiv.textContent = `성공 확률: ${enhanceChance}% | 실패 확률: ${100 - enhanceChance - destroyChance}% | 파괴 확률: ${destroyChance}%`;
+        }
+
+        function enhanceItem() {
+            const enhanceChance = getEnhanceChance(currentLevel);
+            const destroyChance = getDestroyChance(currentLevel);
+
+            // Simulate enhancement with random numbers
+            const enhanceRoll = Math.random() * 100;
+            const destroyRoll = Math.random() * 100;
+
+            if (destroyRoll < destroyChance && !protectionCheckbox.checked) {
+                resultDiv.textContent = `아이템이 파괴되었습니다! (강화 단계: ${currentLevel})`;
+                currentLevel = 0;
+                updateProbabilities();
+                return;
+            }
+
+            if (enhanceRoll < enhanceChance) {
+                currentLevel++;
+                resultDiv.textContent = `강화 성공! 현재 단계: ${currentLevel}`;
+            } else {
+                resultDiv.textContent = `강화 실패! 현재 단계: ${currentLevel}`;
+            }
+            updateProbabilities();
+        }
+
+        enhanceButton.addEventListener("click", () => {
+            enhanceButton.disabled = true;
+            resultDiv.textContent = "강화 중...";
+            
+            setTimeout(() => {
+                enhanceItem();
+                enhanceButton.disabled = false;
+            }, 1500);
+        });
+
+        startLevelInput.addEventListener("input", () => {
+            const inputValue = parseInt(startLevelInput.value, 10);
+            if (!isNaN(inputValue) && inputValue >= 0) {
+                currentLevel = inputValue;
+                resultDiv.textContent = `강화 시작 단계 설정: ${currentLevel}`;
+                updateProbabilities();
+            }
+        });
+
+        // Initialize probabilities display
+        updateProbabilities();
+    </script>
+</body>
+</html>
